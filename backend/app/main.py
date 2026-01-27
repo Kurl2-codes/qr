@@ -1,0 +1,53 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
+from app.api.api import api_router
+from app.api.routers import redirect
+from app.core.config import settings
+from app.core.database import client, users_collection
+from app.core.security import get_password_hash
+
+app = FastAPI(title="QR Redirect System")
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Static Mounting
+if not os.path.exists(settings.UPLOAD_DIR):
+    os.makedirs(settings.UPLOAD_DIR)
+app.mount(f"/{settings.UPLOAD_DIR}", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+
+# Include Routers
+app.include_router(api_router, prefix="/api")
+app.include_router(redirect.router, prefix="/q")
+
+@app.on_event("startup")
+async def startup_db_client():
+    try:
+        await client.admin.command('ping')
+        print("Successfully connected to MongoDB")
+        
+        # Seed Admin User
+        if await users_collection.count_documents({}) == 0:
+            admin_user = {
+                "username": "admin",
+                "hashed_password": get_password_hash("password"),
+                "full_name": "Administrator",
+                "profile_image": None
+            }
+            await users_collection.insert_one(admin_user)
+            print("Admin user created: admin/password")
+            
+    except Exception as e:
+        print(f"Failed to connect to MongoDB: {e}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8001, reload=True)
