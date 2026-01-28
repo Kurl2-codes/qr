@@ -22,20 +22,22 @@ git clone <your-repo-url> QR360
 cd QR360
 ```
 
-## Step 2: Database & Backend Setup (Containerized)
+## Step 2: Full System Startup (Database, Backend, & Frontend)
 
-Using Docker is the easiest way to run the system. It automates the database setup and ensures the backend is correctly configured to talk to it.
+QR360 is fully containerized. You can start the entire stack with a single command:
 
-1.  Make sure Docker Desktop is running.
-2.  In the project root directory, start the services:
+1.  **Start the Stack**:
     ```bash
     docker-compose up --build -d
     ```
-    This will build the backend image and start both MongoDB and the FastAPI server in the background.
+    This command builds the frontend and backend images, starts the MongoDB database, and orchestrates everything together.
 
-The API will be available at [http://localhost:8001](http://localhost:8001).
+2.  **Verify Access**:
+    - **Frontend Dashboard**: [http://localhost:5173](http://localhost:5173)
+    - **API Endpoint**: [http://localhost:8001](http://localhost:8001)
+    - **API Documentation**: [http://localhost:8001/api/docs](http://localhost:8001/api/docs)
 
-## Step 4: Database Restoration (Optional)
+## Step 3: Database Restoration (Optional)
 
 To restore your data (`qr360` database) from the old machine:
 

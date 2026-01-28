@@ -34,20 +34,13 @@ QR360 is built with a modern, high-performance stack:
 
 ## 💻 Getting Started
 
-### 1. Automatic Stack Startup (Database & Backend)
 Ensure **Docker Desktop** is installed and running, then run from the project root:
 ```bash
 docker-compose up --build -d
 ```
-The API becomes available at [http://localhost:8001](http://localhost:8001).
-
-### 2. Frontend Development
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Access the dashboard at [http://localhost:5173](http://localhost:5173).
+The application will be available at:
+- **Dashboard (UI)**: [http://localhost:5173](http://localhost:5173)
+- **API Server**: [http://localhost:8001](http://localhost:8001)
 
 ---
 

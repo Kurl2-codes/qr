@@ -20,60 +20,41 @@ const Guide = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Setup */}
+                {/* Left Column: System Specs */}
                 <div className="lg:col-span-1 space-y-6">
-                    <section className="card-base p-6 bg-white border border-slate-100 shadow-sm">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                                <Terminal size={20} />
-                            </div>
-                            <h3 className="font-header font-bold text-lg text-obsidian-blue">Setup Guide</h3>
-                        </div>
-
-                        <div className="space-y-4 text-sm text-taupe leading-relaxed">
-                            <div className="flex gap-3">
-                                <Layers className="shrink-0 mt-1 text-liquid-lava" size={16} />
-                                <div>
-                                    <p className="font-bold text-obsidian-blue">1. Core Stack (Automatic)</p>
-                                    <p>Run <code>docker-compose up --build -d</code> from the root to start the DB and Backend together.</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <Laptop className="shrink-0 mt-1 text-liquid-lava" size={16} />
-                                <div>
-                                    <p className="font-bold text-obsidian-blue">2. Website (Frontend)</p>
-                                    <p>Go to <code>/frontend</code>, run <code>npm install</code> then <code>npm run dev</code>.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
                     <section className="card-base p-6 bg-slate-900 text-white shadow-xl border border-slate-800">
-                        <div className="flex items-center gap-3 mb-4">
+                        <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-obsidian-eclipse rounded-lg text-liquid-lava">
                                 <CheckCircle2 size={20} />
                             </div>
-                            <h3 className="font-header font-bold text-lg">System Specs</h3>
+                            <h3 className="font-header font-bold text-lg text-white">System Architecture</h3>
                         </div>
-                        <ul className="space-y-3 text-xs text-light-grey">
-                            <li className="flex justify-between border-b border-slate-800 pb-2">
-                                <span>API Port</span>
-                                <span className="font-mono text-liquid-lava">8001</span>
+                        <ul className="space-y-4 text-xs text-light-grey">
+                            <li className="flex justify-between border-b border-slate-800 pb-3">
+                                <span className="flex items-center gap-2"><Server size={14} className="text-blue-400" /> API Logic</span>
+                                <span className="font-mono text-liquid-lava">FastAPI (8001)</span>
                             </li>
-                            <li className="flex justify-between border-b border-slate-800 pb-2">
-                                <span>Web Port</span>
-                                <span className="font-mono text-liquid-lava">5173</span>
+                            <li className="flex justify-between border-b border-slate-800 pb-3">
+                                <span className="flex items-center gap-2"><Database size={14} className="text-emerald-400" /> Database</span>
+                                <span className="font-mono text-liquid-lava">MongoDB (qr360)</span>
                             </li>
-                            <li className="flex justify-between border-b border-slate-800 pb-2">
-                                <span>DB Name</span>
-                                <span className="font-mono text-liquid-lava">qr360</span>
+                            <li className="flex justify-between border-b border-slate-800 pb-3">
+                                <span className="flex items-center gap-2"><Laptop size={14} className="text-purple-400" /> Frontend</span>
+                                <span className="font-mono text-liquid-lava">React + Vite</span>
                             </li>
                             <li className="flex justify-between">
-                                <span>Auth</span>
-                                <span className="font-mono text-liquid-lava">JWT + OAuth2</span>
+                                <span className="flex items-center gap-2"><Layers size={14} className="text-orange-400" /> Deployment</span>
+                                <span className="font-mono text-liquid-lava text-right">Docker Compose</span>
                             </li>
                         </ul>
                     </section>
+
+                    <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                        <p className="text-[10px] uppercase font-black text-blue-900/40 tracking-widest mb-2">Technical Note</p>
+                        <p className="text-xs text-blue-900/60 leading-relaxed font-semibold italic">
+                            Redirection logic is handled via a secure proxy layer to ensure 100% uptime for physical assets.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Right Column: Usage & Source Tracking */}
