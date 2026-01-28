@@ -395,7 +395,11 @@ function App() {
             <div className="h-10 w-10 bg-liquid-lava rounded-full flex items-center justify-center text-white font-bold font-header shadow-glow overflow-hidden">
               {user?.profileImage ? (
                 <img
-                  src={user.profileImage.startsWith('http') ? user.profileImage : `${import.meta.env.VITE_UPLOAD_BASE_URL || 'http://localhost:8001'}${user.profileImage}`}
+                  src={
+                    user.profileImage.startsWith('http') || user.profileImage.startsWith('data:')
+                      ? user.profileImage
+                      : `${import.meta.env.VITE_UPLOAD_BASE_URL || 'http://localhost:8001'}${user.profileImage}`
+                  }
                   alt="Profile"
                   className="h-full w-full object-cover"
                 />

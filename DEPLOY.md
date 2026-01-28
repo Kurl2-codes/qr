@@ -7,8 +7,9 @@ Follow these steps to deploy a copy of the QR360 application on a new device.
 Ensure the following are installed on the new machine:
 1.  **Python 3.10+**: [Download](https://www.python.org/downloads/)
 2.  **Node.js 18+**: [Download](https://nodejs.org/)
-3.  **MongoDB Community Server**: [Download](https://www.mongodb.com/try/download/community)
-4.  **MongoDB Database Tools** (for restore): [Download](https://www.mongodb.com/try/download/database-tools)
+3.  **Docker Desktop**: [Download](https://www.docker.com/products/docker-desktop/) (Preferred for Database)
+4.  **MongoDB Community Server**: (Optional, only if not using Docker)
+5.  **MongoDB Database Tools**: [Download](https://www.mongodb.com/try/download/database-tools)
 
 ---
 
@@ -21,45 +22,20 @@ git clone <your-repo-url> QR360
 cd QR360
 ```
 
-## Step 2: Backend Setup
+## Step 2: Database & Backend Setup (Containerized)
 
-1.  Navigate to the backend directory:
+Using Docker is the easiest way to run the system. It automates the database setup and ensures the backend is correctly configured to talk to it.
+
+1.  Make sure Docker Desktop is running.
+2.  In the project root directory, start the services:
     ```bash
-    cd backend
+    docker-compose up --build -d
     ```
+    This will build the backend image and start both MongoDB and the FastAPI server in the background.
 
-2.  Create and activate a virtual environment:
-    ```bash
-    python -m venv venv
-    # Windows:
-    .\venv\Scripts\activate
-    # Mac/Linux:
-    source venv/bin/activate
-    ```
+The API will be available at [http://localhost:8001](http://localhost:8001).
 
-3.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4.  Configure Environment Variables:
-    - Create a `.env` file in the `backend/` folder.
-    - Copy the contents from your existing `.env` or use this template:
-    ```env
-    PROXY_BASE_URL=http://localhost:8001/q/
-    MONGODB_URL=mongodb://localhost:27017
-    SECRET_KEY=your-secure-secret-key
-    DATABASE_NAME=qr360
-    ACCESS_TOKEN_EXPIRE_MINUTES=30
-    UPLOAD_DIR=uploads
-    ```
-
-5.  Run the server:
-    ```bash
-    python -m app.main
-    ```
-
-## Step 3: Database Restoration
+## Step 4: Database Restoration (Optional)
 
 To restore your data (`qr360` database) from the old machine:
 

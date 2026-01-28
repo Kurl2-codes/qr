@@ -8,7 +8,33 @@ from app.core.config import settings
 from app.core.database import client, users_collection
 from app.core.security import get_password_hash
 
-app = FastAPI(title="QR Redirect System")
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    try:
+        await client.admin.command('ping')
+        print("Successfully connected to MongoDB")
+        
+        # Seed Admin User
+        if await users_collection.count_documents({}) == 0:
+            admin_user = {
+                "username": "admin",
+                "hashed_password": get_password_hash("password"),
+                "full_name": "Administrator",
+                "profile_image": None
+            }
+            await users_collection.insert_one(admin_user)
+            print("Admin user created: admin/password")
+            
+    except Exception as e:
+        print(f"Failed to connect to MongoDB: {e}")
+    
+    yield
+    # Shutdown logic (if any) can go here
+
+app = FastAPI(title="QR Redirect System", lifespan=lifespan)
 
 # CORS
 app.add_middleware(
@@ -27,26 +53,6 @@ app.mount(f"/{settings.UPLOAD_DIR}", StaticFiles(directory=settings.UPLOAD_DIR),
 # Include Routers
 app.include_router(api_router, prefix="/api")
 app.include_router(redirect.router, prefix="/q")
-
-@app.on_event("startup")
-async def startup_db_client():
-    try:
-        await client.admin.command('ping')
-        print("Successfully connected to MongoDB")
-        
-        # Seed Admin User
-        if await users_collection.count_documents({}) == 0:
-            admin_user = {
-                "username": "admin",
-                "hashed_password": get_password_hash("password"),
-                "full_name": "Administrator",
-                "profile_image": None
-            }
-            await users_collection.insert_one(admin_user)
-            print("Admin user created: admin/password")
-            
-    except Exception as e:
-        print(f"Failed to connect to MongoDB: {e}")
 
 if __name__ == "__main__":
     import uvicorn

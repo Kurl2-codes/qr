@@ -201,7 +201,11 @@ const Settings = ({ user }) => {
                                             <div className="h-32 w-32 rounded-[2.5rem] overflow-hidden border-4 border-slate-50 bg-slate-100 flex items-center justify-center shadow-inner group-hover:shadow-md transition-all duration-300">
                                                 {profile.profileImage ? (
                                                     <img
-                                                        src={profile.profileImage}
+                                                        src={
+                                                            profile.profileImage.startsWith('http') || profile.profileImage.startsWith('data:')
+                                                                ? profile.profileImage
+                                                                : `${import.meta.env.VITE_UPLOAD_BASE_URL || 'http://localhost:8001'}${profile.profileImage}`
+                                                        }
                                                         alt="Profile"
                                                         className="h-full w-full object-cover"
                                                     />

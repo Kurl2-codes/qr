@@ -7,23 +7,13 @@
 - Node.js
 - MongoDB (running on localhost:27017)
 
-### 1. Database
-Ensure MongoDB is running.
-If you have Docker Desktop installed:
+### 1. Database & Backend (Automatic)
+Ensure Docker Desktop is installed and running.
+Run the following command from the project root:
 ```bash
-docker-compose up -d
+docker-compose up --build -d
 ```
-
-### 2. Backend
-```bash
-cd backend
-# Install dependencies (first time only)
-.\venv\Scripts\pip install -r requirements.txt
-
-# Run server
-.\venv\Scripts\python main.py
-```
-The API will be available at [http://localhost:8001](http://localhost:8001).
+This will start both the MongoDB database and the FastAPI backend automatically. The API will be available at [http://localhost:8001](http://localhost:8001).
 
 ### 3. Frontend
 ```bash

@@ -32,23 +32,16 @@ const Guide = () => {
 
                         <div className="space-y-4 text-sm text-taupe leading-relaxed">
                             <div className="flex gap-3">
-                                <Database className="shrink-0 mt-1 text-liquid-lava" size={16} />
+                                <Layers className="shrink-0 mt-1 text-liquid-lava" size={16} />
                                 <div>
-                                    <p className="font-bold text-obsidian-blue">1. Database</p>
-                                    <p>Ensure MongoDB is running on <code>localhost:27017</code>. Use Docker or a local installation.</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <Server className="shrink-0 mt-1 text-liquid-lava" size={16} />
-                                <div>
-                                    <p className="font-bold text-obsidian-blue">2. Backend</p>
-                                    <p>Go to <code>/backend</code>, install <code>requirements.txt</code>, and run <code>python main.py</code>.</p>
+                                    <p className="font-bold text-obsidian-blue">1. Core Stack (Automatic)</p>
+                                    <p>Run <code>docker-compose up --build -d</code> from the root to start the DB and Backend together.</p>
                                 </div>
                             </div>
                             <div className="flex gap-3">
                                 <Laptop className="shrink-0 mt-1 text-liquid-lava" size={16} />
                                 <div>
-                                    <p className="font-bold text-obsidian-blue">3. Frontend</p>
+                                    <p className="font-bold text-obsidian-blue">2. Website (Frontend)</p>
                                     <p>Go to <code>/frontend</code>, run <code>npm install</code> then <code>npm run dev</code>.</p>
                                 </div>
                             </div>
@@ -73,7 +66,7 @@ const Guide = () => {
                             </li>
                             <li className="flex justify-between border-b border-slate-800 pb-2">
                                 <span>DB Name</span>
-                                <span className="font-mono text-liquid-lava">qr_system</span>
+                                <span className="font-mono text-liquid-lava">qr360</span>
                             </li>
                             <li className="flex justify-between">
                                 <span>Auth</span>
