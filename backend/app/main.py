@@ -9,13 +9,17 @@ from app.core.database import client, users_collection
 from app.core.security import get_password_hash
 
 from contextlib import asynccontextmanager
+from app.core.logging_config import setup_logging, logger
+
+# Initialize structured logging
+setup_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup logic
     try:
         await client.admin.command('ping')
-        print("Successfully connected to MongoDB")
+        logger.info("Successfully connected to MongoDB")
         
         # Seed Admin User
         if await users_collection.count_documents({}) == 0:
@@ -26,10 +30,10 @@ async def lifespan(app: FastAPI):
                 "profile_image": None
             }
             await users_collection.insert_one(admin_user)
-            print("Admin user created: admin/password")
+            logger.info("Admin user created: admin/password")
             
     except Exception as e:
-        print(f"Failed to connect to MongoDB: {e}")
+        logger.error(f"Failed to connect to MongoDB: {e}")
     
     yield
     # Shutdown logic (if any) can go here
@@ -39,7 +43,7 @@ app = FastAPI(title="QR Redirect System", lifespan=lifespan)
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

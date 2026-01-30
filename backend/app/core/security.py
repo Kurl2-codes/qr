@@ -24,7 +24,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 def get_token_from_request(request: Request) -> Optional[str]:
-    # Check cookies first (Guardrail P599)
+    # Check cookies first
     token = request.cookies.get("access_token")
     if token:
         return token

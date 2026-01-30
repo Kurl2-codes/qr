@@ -26,7 +26,7 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
         data={"sub": user["username"]}, expires_delta=access_token_expires
     )
     
-    # Set HTTP-only cookie (Guardrail P599/P602)
+    # Set HTTP-only cookie
     response.set_cookie(
         key="access_token",
         value=access_token,

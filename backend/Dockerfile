@@ -26,4 +26,4 @@ COPY . .
 EXPOSE 8001
 
 # Command to run the application
-CMD ["python", "-m", "app.main"]
+CMD ["gunicorn", "-c", "gunicorn_conf.py", "app.main:app"]
