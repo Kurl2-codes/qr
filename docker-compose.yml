@@ -2,7 +2,7 @@ services:
   mongodb:
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - "${MONGODB_PORT:-27017}:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
@@ -14,11 +14,12 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8001:8001"
+      - "${BACKEND_PORT:-8001}:8001"
     environment:
       - MONGODB_URL=mongodb://mongodb:27017
       - DATABASE_NAME=qr360
       - SECRET_KEY=dev-secret-key-12345
+      - PROXY_BASE_URL=http://localhost:${BACKEND_PORT:-8001}/q/
     depends_on:
       mongodb:
         condition: service_healthy
@@ -26,9 +27,13 @@ services:
       - ./backend/uploads:/app/uploads
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_BASE_URL=http://localhost:${BACKEND_PORT:-8001}/api
+        - VITE_UPLOAD_BASE_URL=http://localhost:${BACKEND_PORT:-8001}
     ports:
-      - "5173:80"
+      - "${FRONTEND_PORT:-5173}:80"
     depends_on:
       - backend
 
