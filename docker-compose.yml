@@ -20,6 +20,7 @@ services:
       - DATABASE_NAME=qr360
       - SECRET_KEY=${SECRET_KEY}
       - PROXY_BASE_URL=${BACKEND_URL}/q/
+      - BACKEND_CORS_ORIGINS=["${FRONTEND_URL}"]
     depends_on:
       mongodb:
         condition: service_healthy
