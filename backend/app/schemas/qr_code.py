@@ -3,6 +3,10 @@ from typing import Optional
 from pydantic import Field
 from .base import BaseSchema
 
+class WebsiteLink(BaseSchema):
+    label: Optional[str] = None
+    url: str
+
 class VCardData(BaseSchema):
     first_name: str
     last_name: str
@@ -11,6 +15,7 @@ class VCardData(BaseSchema):
     organization: Optional[str] = None
     job_title: Optional[str] = None
     website: Optional[str] = None
+    websites: Optional[list[WebsiteLink]] = []
 
 class QRCodeBase(BaseSchema):
     name: str = ""
