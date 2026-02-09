@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     PROXY_BASE_URL: str = "http://localhost:8001/q/"
+    FRONTEND_URL: str = "http://localhost:5173"
     MONGODB_URL: str = "mongodb://localhost:27017"
     DATABASE_NAME: str = "qr360"
     SECRET_KEY: str

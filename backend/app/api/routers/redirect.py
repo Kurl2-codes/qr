@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 from typing import Optional
 from app.core.database import qr_collection
 from app.services import analytics_service
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -37,4 +38,10 @@ URL:{v.get('website') or ''}
 END:VCARD"""
         return Response(content=vcard_content, media_type="text/vcard", headers={"Content-Disposition": f'attachment; filename="{v.get("first_name")}.vcf"'})
 
-    return RedirectResponse(url=qr["target_url"])
+    target_url = qr["target_url"]
+    
+    # Replace backend URL with frontend URL if applicable
+    if target_url.startswith(settings.PROXY_BASE_URL):
+        target_url = target_url.replace(settings.PROXY_BASE_URL, f"{settings.FRONTEND_URL}/")
+        
+    return RedirectResponse(url=target_url)
