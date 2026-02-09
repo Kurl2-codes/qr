@@ -34,8 +34,22 @@ ORG:{v.get('organization') or ''}
 TITLE:{v.get('job_title') or ''}
 TEL;TYPE=WORK,VOICE:{v.get('phone') or ''}
 EMAIL;TYPE=PREF,INTERNET:{v.get('email') or ''}
-URL:{v.get('website') or ''}
-END:VCARD"""
+        # Add main website if present (backward compatibility)
+        if v.get('website'):
+            vcard_content += f"\nURL:{v.get('website')}"
+            
+        # Add additional websites
+        if v.get('websites'):
+            for site in v.get('websites'):
+                url = site.get('url')
+                label = site.get('label')
+                if url:
+                    if label:
+                        vcard_content += f"\nURL;type={label}:{url}"
+                    else:
+                        vcard_content += f"\nURL:{url}"
+
+        vcard_content += "\nEND:VCARD""""
         return Response(content=vcard_content, media_type="text/vcard", headers={"Content-Disposition": f'attachment; filename="{v.get("first_name")}.vcf"'})
 
     target_url = qr["target_url"]
