@@ -26,17 +26,39 @@ async def redirect_qr(
     
     if qr.get("qr_type") == "vcard" and qr.get("vcard_data"):
         v = qr["vcard_data"]
-        vcard_content = f"""BEGIN:VCARD
-VERSION:3.0
-N:{v.get('last_name')};{v.get('first_name')};;;
-FN:{v.get('first_name')} {v.get('last_name')}
-ORG:{v.get('organization') or ''}
-TITLE:{v.get('job_title') or ''}
-TEL;TYPE=WORK,VOICE:{v.get('phone') or ''}
-EMAIL;TYPE=PREF,INTERNET:{v.get('email') or ''}
-URL:{v.get('website') or ''}
-END:VCARD"""
-        return Response(content=vcard_content, media_type="text/vcard", headers={"Content-Disposition": f'attachment; filename="{v.get("first_name")}.vcf"'})
+        vcard_lines = [
+            "BEGIN:VCARD",
+            "VERSION:3.0",
+            f"N:{v.get('last_name') or ''};{v.get('first_name') or ''};;;",
+            f"FN:{v.get('first_name') or ''} {v.get('last_name') or ''}".strip(),
+            f"ORG:{v.get('organization') or ''}",
+            f"TITLE:{v.get('job_title') or ''}",
+            f"TEL;TYPE=WORK,VOICE:{v.get('phone') or ''}",
+            f"EMAIL;TYPE=PREF,INTERNET:{v.get('email') or ''}"
+        ]
+        
+        # Add main website if present (backward compatibility)
+        if v.get('website'):
+            vcard_lines.append(f"URL:{v.get('website')}")
+            
+        # Add additional websites
+        websites = v.get('websites') or []
+        for site in websites:
+            url = site.get('url')
+            label = site.get('label')
+            if url:
+                if label:
+                    vcard_lines.append(f"URL;type={label}:{url}")
+                else:
+                    vcard_lines.append(f"URL:{url}")
+
+        vcard_lines.append("END:VCARD")
+        vcard_content = "\n".join(vcard_lines)
+        return Response(
+            content=vcard_content, 
+            media_type="text/vcard", 
+            headers={"Content-Disposition": f'attachment; filename="{v.get("first_name", "contact")}.vcf"'}
+        )
 
     target_url = qr["target_url"]
     

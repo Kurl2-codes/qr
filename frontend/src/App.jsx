@@ -442,7 +442,8 @@ function App() {
                         email: '',
                         organization: '',
                         jobTitle: '',
-                        website: ''
+                        website: '',
+                        websites: []
                       },
                       logoImage: ''
                     });
@@ -721,7 +722,10 @@ function App() {
                                   isActive: qr.isActive,
                                   source: qr.source || 'General',
                                   qrType: qr.qrType || 'url',
-                                  vcardData: qr.vcardData || {},
+                                  vcardData: {
+                                    ...qr.vcardData,
+                                    websites: qr.vcardData?.websites || []
+                                  } || {},
                                   logoImage: qr.logoImage || '',
                                   name: qr.name || ''
                                 });
@@ -870,6 +874,88 @@ function App() {
                           value={formData.vcardData?.jobTitle || ''}
                           onChange={(e) => setFormData({ ...formData, vcardData: { ...formData.vcardData, jobTitle: e.target.value } })}
                         />
+                      </div>
+                    </div>
+
+                    {/* Website Links Section */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-semibold text-obsidian-tide">Websites & Social Links</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentWebsites = formData.vcardData?.websites || [];
+                            setFormData({
+                              ...formData,
+                              vcardData: {
+                                ...formData.vcardData,
+                                websites: [...currentWebsites, { label: '', url: '' }]
+                              }
+                            });
+                          }}
+                          className="text-xs font-bold text-liquid-lava hover:text-liquid-lava/80 flex items-center gap-1"
+                        >
+                          <Plus size={12} /> Add Website
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {((formData.vcardData?.websites || []).length > 0) ? (
+                          (formData.vcardData?.websites || []).map((site, index) => (
+                            <div key={index} className="flex gap-2 items-start">
+                              <div className="w-1/3">
+                                <input
+                                  type="text"
+                                  placeholder="Label"
+                                  value={site.label || ''}
+                                  onChange={(e) => {
+                                    const newWebsites = [...(formData.vcardData?.websites || [])];
+                                    newWebsites[index] = { ...newWebsites[index], label: e.target.value };
+                                    setFormData({
+                                      ...formData,
+                                      vcardData: { ...formData.vcardData, websites: newWebsites }
+                                    });
+                                  }}
+                                  className="input-field py-2 text-xs"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <input
+                                  type="url"
+                                  placeholder="https://..."
+                                  value={site.url || ''}
+                                  onChange={(e) => {
+                                    const newWebsites = [...(formData.vcardData?.websites || [])];
+                                    newWebsites[index] = { ...newWebsites[index], url: e.target.value };
+                                    setFormData({
+                                      ...formData,
+                                      vcardData: { ...formData.vcardData, websites: newWebsites }
+                                    });
+                                  }}
+                                  className="input-field py-2 text-xs"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newWebsites = [...(formData.vcardData?.websites || [])];
+                                  newWebsites.splice(index, 1);
+                                  setFormData({
+                                    ...formData,
+                                    vcardData: { ...formData.vcardData, websites: newWebsites }
+                                  });
+                                }}
+                                className="p-2 text-red-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center p-4 border border-dashed border-slate-200 rounded-lg bg-slate-50">
+                            <p className="text-xs text-light-grey">No websites added yet.</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
