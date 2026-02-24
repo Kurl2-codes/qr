@@ -33,9 +33,30 @@ async def redirect_qr(
             f"FN:{v.get('first_name') or ''} {v.get('last_name') or ''}".strip(),
             f"ORG:{v.get('organization') or ''}",
             f"TITLE:{v.get('job_title') or ''}",
-            f"TEL;TYPE=WORK,VOICE:{v.get('phone') or ''}",
-            f"EMAIL;TYPE=PREF,INTERNET:{v.get('email') or ''}"
         ]
+        
+        # Add primary phone for backward compatibility
+        if v.get('phone'):
+            vcard_lines.append(f"TEL;TYPE=WORK,VOICE:{v.get('phone')}")
+            
+        # Add multiple phones
+        phones = v.get('phones') or []
+        for p in phones:
+            p_type = p.get('type', 'OTHER').upper()
+            p_num = p.get('number', '')
+            if p_num:
+                if p_type == 'MOBILE PHONE':
+                    vcard_lines.append(f"TEL;TYPE=CELL:{p_num}")
+                elif p_type == 'WHATSAPP':
+                    clean_num = "".join(filter(str.isdigit, p_num))
+                    vcard_lines.append(f"TEL;TYPE=CELL:{p_num}")
+                    vcard_lines.append(f"IMPP;TYPE=whatsapp:wa.me/{clean_num}")
+                else:
+                    vcard_lines.append(f"TEL;TYPE={p_type}:{p_num}")
+
+        vcard_lines.extend([
+            f"EMAIL;TYPE=PREF,INTERNET:{v.get('email') or ''}"
+        ])
         
         # Add main website if present (backward compatibility)
         if v.get('website'):

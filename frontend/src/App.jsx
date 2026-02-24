@@ -3,7 +3,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Trash2, Edit2, Download, Power, PowerOff, X, LogOut,
-  BarChart2, QrCode, Link as LinkIcon, Menu, LayoutDashboard, Settings as SettingsIcon, PieChart, Search, Calendar, Filter, RotateCcw, Scan
+  BarChart2, QrCode, Link as LinkIcon, Menu, LayoutDashboard, Settings as SettingsIcon, PieChart, Search, Calendar, Filter, RotateCcw, Scan,
+  Smartphone, Home, Briefcase, Printer, Phone, MessageCircle, ChevronDown
 } from 'lucide-react';
 import Login from './pages/Login';
 import clsx from 'clsx';
@@ -34,6 +35,16 @@ function App() {
   const [customDate, setCustomDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { }, type: 'danger' });
+  const [openPhoneDropdown, setOpenPhoneDropdown] = useState(null);
+
+  const phoneTypes = [
+    { label: 'Mobile Phone', icon: Smartphone },
+    { label: 'Home', icon: Home },
+    { label: 'Work', icon: Briefcase },
+    { label: 'Fax', icon: Printer },
+    { label: 'WhatsApp', icon: MessageCircle, color: 'text-emerald-500' },
+    { label: 'Other', icon: Phone },
+  ];
 
   const handleLogout = () => {
     logout.mutate();
@@ -439,6 +450,7 @@ function App() {
                         firstName: '',
                         lastName: '',
                         phone: '',
+                        phones: [],
                         email: '',
                         organization: '',
                         jobTitle: '',
@@ -724,7 +736,8 @@ function App() {
                                   qrType: qr.qrType || 'url',
                                   vcardData: {
                                     ...qr.vcardData,
-                                    websites: qr.vcardData?.websites || []
+                                    websites: qr.vcardData?.websites || [],
+                                    phones: qr.vcardData?.phones || []
                                   } || {},
                                   logoImage: qr.logoImage || '',
                                   name: qr.name || ''
@@ -846,12 +859,127 @@ function App() {
                         />
                       </div>
                     </div>
+                    {/* Phone Numbers Section */}
                     <div>
-                      <label className="block text-xs font-semibold text-obsidian-tide mb-1">Phone</label>
-                      <input type="tel" className="input-field py-2" placeholder="+1 (555) 000-0000"
-                        value={formData.vcardData?.phone || ''}
-                        onChange={(e) => setFormData({ ...formData, vcardData: { ...formData.vcardData, phone: e.target.value } })}
-                      />
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-semibold text-obsidian-tide">Phone Numbers</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentPhones = formData.vcardData?.phones || [];
+                            setFormData({
+                              ...formData,
+                              vcardData: {
+                                ...formData.vcardData,
+                                phones: [...currentPhones, { type: 'Mobile Phone', number: '' }]
+                              }
+                            });
+                          }}
+                          className="text-xs font-bold text-liquid-lava hover:text-liquid-lava/80 flex items-center gap-1"
+                        >
+                          <Plus size={12} /> Add Phone
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {((formData.vcardData?.phones || []).length > 0) ? (
+                          (formData.vcardData?.phones || []).map((phone, index) => (
+                            <div key={index} className="flex gap-2 items-start">
+                              <div className="w-1/3 relative">
+                                <button
+                                  type="button"
+                                  onClick={() => setOpenPhoneDropdown(openPhoneDropdown === index ? null : index)}
+                                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold bg-white border border-slate-200 rounded-lg hover:border-liquid-lava transition-colors"
+                                >
+                                  <div className="flex items-center gap-2 truncate">
+                                    {(() => {
+                                      const type = phoneTypes.find(t => t.label === phone.type) || phoneTypes[0];
+                                      const Icon = type.icon;
+                                      return (
+                                        <>
+                                          <Icon size={14} className={type.color || "text-obsidian-tide"} />
+                                          <span className="truncate">{phone.type || 'Mobile Phone'}</span>
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
+                                  <ChevronDown size={14} className={clsx("transition-transform", openPhoneDropdown === index && "rotate-180")} />
+                                </button>
+
+                                <AnimatePresence>
+                                  {openPhoneDropdown === index && (
+                                    <>
+                                      <div className="fixed inset-0 z-[60]" onClick={() => setOpenPhoneDropdown(null)} />
+                                      <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className="absolute left-0 right-0 mt-1 bg-white border border-slate-100 rounded-lg shadow-xl z-[70] overflow-hidden"
+                                      >
+                                        {phoneTypes.map((t) => (
+                                          <button
+                                            key={t.label}
+                                            type="button"
+                                            onClick={() => {
+                                              const newPhones = [...(formData.vcardData?.phones || [])];
+                                              newPhones[index] = { ...newPhones[index], type: t.label };
+                                              setFormData({
+                                                ...formData,
+                                                vcardData: { ...formData.vcardData, phones: newPhones }
+                                              });
+                                              setOpenPhoneDropdown(null);
+                                            }}
+                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-xs text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
+                                          >
+                                            <t.icon size={14} className={t.color || "text-taupe"} />
+                                            <span className={clsx("font-medium", phone.type === t.label ? "text-liquid-lava" : "text-obsidian-tide")}>
+                                              {t.label}
+                                            </span>
+                                          </button>
+                                        ))}
+                                      </motion.div>
+                                    </>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                              <div className="flex-1">
+                                <input
+                                  type="tel"
+                                  placeholder="+1..."
+                                  value={phone.number || ''}
+                                  onChange={(e) => {
+                                    const newPhones = [...(formData.vcardData?.phones || [])];
+                                    newPhones[index] = { ...newPhones[index], number: e.target.value };
+                                    setFormData({
+                                      ...formData,
+                                      vcardData: { ...formData.vcardData, phones: newPhones }
+                                    });
+                                  }}
+                                  className="input-field py-2 text-xs"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newPhones = [...(formData.vcardData?.phones || [])];
+                                  newPhones.splice(index, 1);
+                                  setFormData({
+                                    ...formData,
+                                    vcardData: { ...formData.vcardData, phones: newPhones }
+                                  });
+                                }}
+                                className="p-2 text-red-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center p-4 border border-dashed border-slate-200 rounded-lg bg-slate-50">
+                            <p className="text-xs text-light-grey">No phone numbers added yet.</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-obsidian-tide mb-1">Email</label>

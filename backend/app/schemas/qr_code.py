@@ -7,10 +7,15 @@ class WebsiteLink(BaseSchema):
     label: Optional[str] = None
     url: str
 
+class PhoneDetail(BaseSchema):
+    type: str
+    number: str
+
 class VCardData(BaseSchema):
     first_name: str
     last_name: str
     phone: Optional[str] = None
+    phones: Optional[list[PhoneDetail]] = []
     email: Optional[str] = None
     organization: Optional[str] = None
     job_title: Optional[str] = None
