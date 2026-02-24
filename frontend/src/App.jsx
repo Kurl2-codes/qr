@@ -43,6 +43,7 @@ function App() {
     { label: 'Work', icon: Briefcase },
     { label: 'Fax', icon: Printer },
     { label: 'WhatsApp', icon: MessageCircle, color: 'text-emerald-500' },
+    { label: 'Viber', icon: Phone, color: 'text-purple-500' },
     { label: 'Other', icon: Phone },
   ];
 
@@ -1086,6 +1087,51 @@ function App() {
                         )}
                       </div>
                     </div>
+                  </div>
+                ) : formData.qrType === 'whatsapp' ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-obsidian-tide mb-1">WhatsApp Phone Number</label>
+                      <input
+                        type="tel"
+                        value={formData.targetUrl.includes('?') ? formData.targetUrl.split('wa.me/')[1]?.split('?')[0] : formData.targetUrl.split('wa.me/')[1] || ''}
+                        onChange={(e) => {
+                          const num = e.target.value.replace(/\D/g, '');
+                          const currentMsg = formData.targetUrl.includes('text=') ? formData.targetUrl.split('text=')[1] : '';
+                          setFormData({ ...formData, targetUrl: num ? `wa.me/${num}${currentMsg ? `?text=${currentMsg}` : ''}` : '' });
+                        }}
+                        placeholder="e.g. 639123456789"
+                        className="input-field"
+                        required
+                      />
+                      <p className="text-[10px] text-taupe mt-1">Enter number with country code, no "+" or spaces.</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-obsidian-tide mb-1">Pre-filled Message (Optional)</label>
+                      <textarea
+                        value={formData.targetUrl.includes('text=') ? decodeURIComponent(formData.targetUrl.split('text=')[1]) : ''}
+                        onChange={(e) => {
+                          const num = formData.targetUrl.includes('?') ? formData.targetUrl.split('wa.me/')[1]?.split('?')[0] : formData.targetUrl.split('wa.me/')[1] || '';
+                          const msg = encodeURIComponent(e.target.value);
+                          setFormData({ ...formData, targetUrl: num ? `wa.me/${num}${msg ? `?text=${msg}` : ''}` : '' });
+                        }}
+                        placeholder="Hello, I'm interested in..."
+                        className="input-field min-h-[80px] py-3"
+                      />
+                    </div>
+                  </div>
+                ) : formData.qrType === 'viber' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-obsidian-tide mb-1">Viber Phone Number</label>
+                    <input
+                      type="tel"
+                      value={formData.targetUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, targetUrl: e.target.value.replace(/\D/g, '') })}
+                      placeholder="e.g. 639123456789"
+                      className="input-field"
+                      required
+                    />
+                    <p className="text-[10px] text-taupe mt-1">Enter number with country code, no "+" or spaces.</p>
                   </div>
                 ) : (
                   <div>
