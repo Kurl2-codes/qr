@@ -14,6 +14,7 @@ class PhoneDetail(BaseSchema):
 class VCardData(BaseSchema):
     first_name: str
     last_name: str
+    location: Optional[str] = None
     phone: Optional[str] = None
     phones: Optional[list[PhoneDetail]] = []
     email: Optional[str] = None

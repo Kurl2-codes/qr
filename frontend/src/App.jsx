@@ -450,6 +450,7 @@ function App() {
                       vcardData: {
                         firstName: '',
                         lastName: '',
+                        location: '',
                         phone: '',
                         phones: [],
                         email: '',
@@ -859,6 +860,13 @@ function App() {
                           onChange={(e) => setFormData({ ...formData, vcardData: { ...formData.vcardData, lastName: e.target.value } })}
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-obsidian-tide mb-1">Location</label>
+                      <input type="text" className="input-field py-2" placeholder="City, State/Country"
+                        value={formData.vcardData?.location || ''}
+                        onChange={(e) => setFormData({ ...formData, vcardData: { ...formData.vcardData, location: e.target.value } })}
+                      />
                     </div>
                     {/* Phone Numbers Section */}
                     <div>

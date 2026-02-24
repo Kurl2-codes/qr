@@ -31,6 +31,7 @@ async def redirect_qr(
             "VERSION:3.0",
             f"N:{v.get('last_name') or ''};{v.get('first_name') or ''};;;",
             f"FN:{v.get('first_name') or ''} {v.get('last_name') or ''}".strip(),
+            f"ADR;TYPE=WORK:{v.get('location') or ''};;;;;;",
             f"ORG:{v.get('organization') or ''}",
             f"TITLE:{v.get('job_title') or ''}",
         ]
