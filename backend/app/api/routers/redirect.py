@@ -49,8 +49,12 @@ async def redirect_qr(
                     vcard_lines.append(f"TEL;TYPE=CELL:{p_num}")
                 elif p_type == 'WHATSAPP':
                     clean_num = "".join(filter(str.isdigit, p_num))
-                    vcard_lines.append(f"TEL;TYPE=CELL:{p_num}")
-                    vcard_lines.append(f"IMPP;TYPE=whatsapp:wa.me/{clean_num}")
+                    vcard_lines.append(f"TEL;TYPE=CELL,VOICE:{p_num}")
+                    vcard_lines.append(f"IMPP;TYPE=whatsapp:https://wa.me/{clean_num}")
+                elif p_type == 'VIBER':
+                    clean_num = "".join(filter(str.isdigit, p_num))
+                    vcard_lines.append(f"TEL;TYPE=CELL,VOICE:{p_num}")
+                    vcard_lines.append(f"IMPP;TYPE=viber:viber://chat?number=%2B{clean_num}")
                 else:
                     vcard_lines.append(f"TEL;TYPE={p_type}:{p_num}")
 
@@ -83,6 +87,16 @@ async def redirect_qr(
 
     target_url = qr["target_url"]
     
+    # Handle social redirection fix
+    if target_url.startswith("wa.me/"):
+        target_url = f"https://{target_url}"
+    elif qr.get("qr_type") == "viber" and not target_url.startswith("viber://"):
+        # Ensure viber numbers are cleaned and formatted
+        clean_viber = "".join(filter(str.isdigit, target_url))
+        target_url = f"viber://chat?number=%2B{clean_viber}"
+    elif not (target_url.startswith("http://") or target_url.startswith("https://") or target_url.startswith("viber://")):
+        target_url = f"https://{target_url}"
+
     # Replace backend URL with frontend URL if applicable
     if target_url.startswith(settings.PROXY_BASE_URL):
         target_url = target_url.replace(settings.PROXY_BASE_URL, f"{settings.FRONTEND_URL}/")
