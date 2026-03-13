@@ -1058,8 +1058,8 @@ function App() {
                               </div>
                               <div className="flex-1">
                                 <input
-                                  type="url"
-                                  placeholder="https://..."
+                                  type="text"
+                                  placeholder="example.com/social"
                                   value={site.url || ''}
                                   onChange={(e) => {
                                     const newWebsites = [...(formData.vcardData?.websites || [])];
@@ -1147,10 +1147,10 @@ function App() {
                     <div className="relative">
                       <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-taupe" size={16} />
                       <input
-                        type="url"
+                        type="text"
                         value={formData.targetUrl}
                         onChange={(e) => setFormData({ ...formData, targetUrl: e.target.value })}
-                        placeholder="https://example.com/your-destination"
+                        placeholder="example.com/your-destination"
                         className="input-field pl-10"
                         required={formData.qrType === 'url'}
                       />
