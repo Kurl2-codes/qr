@@ -15,3 +15,6 @@ frontend/dist/
 # IDE
 .idea/
 .vscode/
+
+# MongoDB Data
+mongodb_data/

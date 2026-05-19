@@ -50,12 +50,29 @@ export const useQR = () => {
         },
     });
 
+    const bulkCreateVCard = useMutation({
+        mutationFn: async (file) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            const { data } = await client.post('/qr/bulk-vcard', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['qrs']);
+        },
+    });
+
     return {
         qrs: qrs.data || [],
         isLoading: qrs.isLoading,
         createQR,
         updateQR,
         deleteQR,
-        uploadImage
+        uploadImage,
+        bulkCreateVCard
     };
 };

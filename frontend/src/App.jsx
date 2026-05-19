@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Trash2, Edit2, Download, Power, PowerOff, X, LogOut,
   BarChart2, QrCode, Link as LinkIcon, Menu, LayoutDashboard, Settings as SettingsIcon, PieChart, Search, Calendar, Filter, RotateCcw, Scan,
-  Smartphone, Home, Briefcase, Printer, Phone, MessageCircle, ChevronDown
+  Smartphone, Home, Briefcase, Printer, Phone, MessageCircle, ChevronDown, Upload, FileSpreadsheet, Check
 } from 'lucide-react';
 import Login from './pages/Login';
 import clsx from 'clsx';
@@ -18,7 +18,7 @@ import ConfirmationModal from './components/ui/ConfirmationModal';
 
 function App() {
   const { user, isAuthenticated, logout, isLoading: isAuthLoading } = useAuth();
-  const { qrs, isLoading: isQrLoading, createQR, updateQR, deleteQR } = useQR();
+  const { qrs, isLoading: isQrLoading, createQR, updateQR, deleteQR, bulkCreateVCard } = useQR();
 
   const submitting = createQR.isPending || updateQR.isPending;
 
@@ -36,6 +36,9 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { }, type: 'danger' });
   const [openPhoneDropdown, setOpenPhoneDropdown] = useState(null);
+  const [selectedCsvFile, setSelectedCsvFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [bulkSuccessMessage, setBulkSuccessMessage] = useState(null);
 
   const phoneTypes = [
     { label: 'Mobile Phone', icon: Smartphone },
@@ -73,6 +76,68 @@ function App() {
     } catch (error) {
       console.error('Error saving QR', error);
       setError('Failed to save QR code. ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const handleBulkSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedCsvFile) {
+      setError('Please select or drag a CSV file first.');
+      return;
+    }
+    setError(null);
+    try {
+      const response = await bulkCreateVCard.mutateAsync(selectedCsvFile);
+      if (response?.success) {
+        setBulkSuccessMessage(response.message || `Successfully imported ${response.count} campaigns.`);
+        setSelectedCsvFile(null);
+        setTimeout(() => {
+          setIsModalOpen(false);
+          setBulkSuccessMessage(null);
+        }, 3000);
+      } else {
+        setError(response?.message || 'Failed to import CSV.');
+      }
+    } catch (err) {
+      console.error('Error in bulk import', err);
+      setError(err.response?.data?.detail || err.message || 'An error occurred during bulk import.');
+    }
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.name.endsWith('.csv')) {
+        setSelectedCsvFile(file);
+        setError(null);
+      } else {
+        setError('Please upload a valid CSV file.');
+      }
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.name.endsWith('.csv')) {
+        setSelectedCsvFile(file);
+        setError(null);
+      } else {
+        setError('Please upload a valid CSV file.');
+      }
     }
   };
 
@@ -814,34 +879,45 @@ function App() {
                 </button>
               </div>
 
-              <div className="px-6 py-4 flex gap-4 border-b border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, qrType: 'url' })}
-                  className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${formData.qrType === 'url' ? 'bg-obsidian-blue text-white shadow-md' : 'bg-slate-50 text-obsidian-tide hover:bg-slate-100'}`}
-                >
-                  Website URL
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, qrType: 'vcard' })}
-                  className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${formData.qrType === 'vcard' ? 'bg-obsidian-blue text-white shadow-md' : 'bg-slate-50 text-obsidian-tide hover:bg-slate-100'}`}
-                >
-                  Contact Card (VCard)
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-6 pt-4 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-obsidian-tide mb-1">QR Code Name</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g. My Portfolio QR"
-                    className="input-field"
-                  />
+              {!editingQr && (
+                <div className="px-6 py-4 flex gap-4 border-b border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, qrType: 'url' })}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${formData.qrType === 'url' ? 'bg-obsidian-blue text-white shadow-md' : 'bg-slate-50 text-obsidian-tide hover:bg-slate-100'}`}
+                  >
+                    Website URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, qrType: 'vcard' })}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${formData.qrType === 'vcard' ? 'bg-obsidian-blue text-white shadow-md' : 'bg-slate-50 text-obsidian-tide hover:bg-slate-100'}`}
+                  >
+                    Contact Card (VCard)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, qrType: 'bulk' })}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${formData.qrType === 'bulk' ? 'bg-obsidian-blue text-white shadow-md' : 'bg-slate-50 text-obsidian-tide hover:bg-slate-100'}`}
+                  >
+                    Bulk Import (CSV)
+                  </button>
                 </div>
+              )}
+
+              <form onSubmit={formData.qrType === 'bulk' ? handleBulkSubmit : handleSubmit} className="p-6 pt-4 space-y-4">
+                {formData.qrType !== 'bulk' ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-obsidian-tide mb-1">QR Code Name</label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="e.g. My Portfolio QR"
+                        className="input-field"
+                      />
+                    </div>
 
                 {formData.qrType === 'vcard' ? (
                   <div className="space-y-4">
@@ -1218,7 +1294,115 @@ function App() {
                     {submitting ? 'Processing...' : (editingQr ? 'Save Changes' : 'Create Campaign')}
                   </button>
                 </div>
-              </form>
+              </>
+            ) : (
+              <div className="space-y-4">
+                {bulkSuccessMessage ? (
+                  <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-xl text-center space-y-2">
+                    <div className="mx-auto w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                      <Check className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-header font-bold text-emerald-800">Import Successful!</h4>
+                    <p className="text-sm text-emerald-600">{bulkSuccessMessage}</p>
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      onDragEnter={handleDrag}
+                      onDragOver={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDrop={handleDrop}
+                      onClick={() => document.getElementById('csv-file-input').click()}
+                      className={clsx(
+                        "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[200px]",
+                        dragActive ? "border-liquid-lava bg-liquid-lava/5" : "border-slate-200 hover:border-liquid-lava hover:bg-slate-50"
+                      )}
+                    >
+                      <input
+                        type="file"
+                        id="csv-file-input"
+                        accept=".csv"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <Upload className="w-10 h-10 text-taupe mb-3" />
+                      {selectedCsvFile ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-bold text-obsidian-blue">{selectedCsvFile.name}</p>
+                          <p className="text-xs text-taupe">{(selectedCsvFile.size / 1024).toFixed(2)} KB</p>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedCsvFile(null);
+                            }}
+                            className="text-xs font-bold text-red-500 hover:text-red-600 mt-2 inline-block"
+                          >
+                            Remove File
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-bold text-obsidian-blue">Drag & drop your CSV file here</p>
+                          <p className="text-xs text-taupe mt-1">or click to browse from your computer</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-obsidian-blue flex items-center gap-1.5">
+                          <FileSpreadsheet size={14} className="text-liquid-lava" />
+                          Expected CSV Headers:
+                        </span>
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const headers = "QR Code Name,First Name,Last Name,Location,Phone 1,Phone 2,Email,Organization,Title,Website 1 Label,Website 1 URL,Website 2 Label,Website 2 URL,Website 3 Label,Website 3 URL\n";
+                            const blob = new Blob([headers], { type: 'text/csv' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.setAttribute('href', url);
+                            a.setAttribute('download', 'campaign_vcard_template.csv');
+                            a.click();
+                          }}
+                          className="text-[11px] font-bold text-liquid-lava hover:underline flex items-center gap-1"
+                        >
+                          <Download size={12} /> Template
+                        </a>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-1.5 text-[10px] font-medium text-taupe">
+                        <div className="bg-white p-1.5 rounded border border-slate-100"><strong className="text-obsidian-blue">QR Code Name</strong>*</div>
+                        <div className="bg-white p-1.5 rounded border border-slate-100"><strong className="text-obsidian-blue">First Name</strong>*</div>
+                        <div className="bg-white p-1.5 rounded border border-slate-100"><strong className="text-obsidian-blue">Last Name</strong></div>
+                        <div className="bg-white p-1.5 rounded border border-slate-100">Location</div>
+                        <div className="bg-white p-1.5 rounded border border-slate-100">Phone 1</div>
+                        <div className="bg-white p-1.5 rounded border border-slate-100">Phone 2</div>
+                        <div className="bg-white p-1.5 rounded border border-slate-100">Email</div>
+                        <div className="bg-white p-1.5 rounded border border-slate-100">Organization</div>
+                        <div className="bg-white p-1.5 rounded border border-slate-100">Title</div>
+                      </div>
+                      <p className="text-[10px] text-taupe italic">* Required fields. The importer supports large datasets (up to 2,000+ entries).</p>
+                    </div>
+
+                    {selectedCsvFile && (
+                      <div className="pt-2">
+                        <button
+                          type="submit"
+                          disabled={bulkCreateVCard.isPending}
+                          className="w-full btn btn-primary h-12"
+                        >
+                          {bulkCreateVCard.isPending ? 'Processing Bulk Import...' : `Generate campaigns from CSV`}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </form>
             </motion.div>
           </div>
         )}
