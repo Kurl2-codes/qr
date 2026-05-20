@@ -12,6 +12,16 @@ async def get_multi(skip: int = 0, limit: int = 100) -> List[dict]:
     for qr in qrs:
         if "source" not in qr: qr["source"] = qr.get("category", "General")
         if "qr_type" not in qr: qr["qr_type"] = "url"
+        if "fg_color" not in qr: qr["fg_color"] = "#0b0f19"
+        if "bg_color" not in qr: qr["bg_color"] = "#ffffff"
+        if "include_margin" not in qr: qr["include_margin"] = False
+        if "border_radius" not in qr: qr["border_radius"] = 12
+        if "border_width" not in qr: qr["border_width"] = 0
+        if "border_color" not in qr: qr["border_color"] = "#3b82f6"
+        if "shadow" not in qr: qr["shadow"] = "none"
+        if "is_gradient" not in qr: qr["is_gradient"] = False
+        if "fg_color_start" not in qr: qr["fg_color_start"] = qr.get("fg_color", "#0b0f19")
+        if "fg_color_end" not in qr: qr["fg_color_end"] = qr.get("fg_color", "#0b0f19")
         
         qr_id = qr["_id"]
         qr["proxy_url"] = f"{settings.PROXY_BASE_URL}{qr_id}"
@@ -22,6 +32,16 @@ async def get(qr_id: str) -> Optional[dict]:
     qr = await qr_collection.find_one({"_id": qr_id})
     if qr:
         qr["proxy_url"] = f"{settings.PROXY_BASE_URL}{qr_id}"
+        if "fg_color" not in qr: qr["fg_color"] = "#0b0f19"
+        if "bg_color" not in qr: qr["bg_color"] = "#ffffff"
+        if "include_margin" not in qr: qr["include_margin"] = False
+        if "border_radius" not in qr: qr["border_radius"] = 12
+        if "border_width" not in qr: qr["border_width"] = 0
+        if "border_color" not in qr: qr["border_color"] = "#3b82f6"
+        if "shadow" not in qr: qr["shadow"] = "none"
+        if "is_gradient" not in qr: qr["is_gradient"] = False
+        if "fg_color_start" not in qr: qr["fg_color_start"] = qr.get("fg_color", "#0b0f19")
+        if "fg_color_end" not in qr: qr["fg_color_end"] = qr.get("fg_color", "#0b0f19")
     return qr
 
 async def create(obj_in: QRCodeCreate) -> dict:
@@ -40,6 +60,16 @@ async def create(obj_in: QRCodeCreate) -> dict:
         "qr_type": obj_in.qr_type,
         "vcard_data": obj_in.vcard_data.dict() if obj_in.vcard_data else None,
         "logo_image": obj_in.logo_image,
+        "fg_color": obj_in.fg_color,
+        "bg_color": obj_in.bg_color,
+        "include_margin": obj_in.include_margin,
+        "border_radius": obj_in.border_radius,
+        "border_width": obj_in.border_width,
+        "border_color": obj_in.border_color,
+        "shadow": obj_in.shadow,
+        "is_gradient": obj_in.is_gradient,
+        "fg_color_start": obj_in.fg_color_start,
+        "fg_color_end": obj_in.fg_color_end,
         "clicks": 0,
         "created_at": now,
         "updated_at": now

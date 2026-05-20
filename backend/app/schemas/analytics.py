@@ -15,6 +15,10 @@ class ClickLog(BaseSchema):
     device_type: Optional[str] = None
     qr_name: Optional[str] = "Unknown"
     source: str = "General"
+    country: Optional[str] = "Unknown"
+    city: Optional[str] = "Unknown"
+    region: Optional[str] = "Unknown"
+    ip_address: Optional[str] = "Unknown"
 
 class AnalyticsOverview(BaseSchema):
     total_clicks: int
@@ -26,4 +30,6 @@ class AnalyticsOverview(BaseSchema):
     os_stats: List[Dict[str, Any]]
     browser_stats: List[Dict[str, Any]]
     model_stats: List[Dict[str, Any]]
+    country_stats: List[Dict[str, Any]] = []
+    city_stats: List[Dict[str, Any]] = []
     recent_scans: List[ClickLog]

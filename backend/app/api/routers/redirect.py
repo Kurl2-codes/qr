@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Header, BackgroundTasks, HTTPException, Response
+from fastapi import APIRouter, Header, BackgroundTasks, HTTPException, Response, Request
 from fastapi.responses import RedirectResponse
 from typing import Optional
 from app.core.database import qr_collection
@@ -10,6 +10,7 @@ router = APIRouter()
 @router.get("/{qr_id}")
 async def redirect_qr(
     qr_id: str, 
+    request: Request,
     background_tasks: BackgroundTasks, 
     user_agent: Optional[str] = Header(None)
 ):
@@ -21,8 +22,22 @@ async def redirect_qr(
     if not qr.get("is_active"):
         raise HTTPException(status_code=403, detail="QR Code is inactive")
     
-    # Async Logging
-    background_tasks.add_task(analytics_service.log_click, qr_id, user_agent, qr.get("source", "General"))
+    # Determine client IP address (taking proxy headers into account)
+    x_forwarded_for = request.headers.get("x-forwarded-for")
+    if x_forwarded_for:
+        client_ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        client_ip = request.client.host if request.client else "127.0.0.1"
+
+    # Async Logging with IP Address
+    background_tasks.add_task(
+        analytics_service.log_click, 
+        qr_id, 
+        user_agent, 
+        qr.get("source", "General"),
+        client_ip
+    )
+
     
     if qr.get("qr_type") == "vcard" and qr.get("vcard_data"):
         v = qr["vcard_data"]
