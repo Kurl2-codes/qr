@@ -45,8 +45,8 @@ async def delete_qr(qr_id: str, current_user = Depends(get_current_user)):
 async def upload_image(file: UploadFile = File(...), current_user = Depends(get_current_user)):
     """Upload a logo image for QR codes."""
     file_ext = file.filename.split('.')[-1].lower()
-    if file_ext not in ['png', 'jpg', 'jpeg', 'gif', 'svg']:
-        raise HTTPException(status_code=400, detail="Invalid image format")
+    if file_ext not in ['png', 'jpg', 'jpeg', 'gif', 'svg', 'pdf']:
+        raise HTTPException(status_code=400, detail="Invalid file format")
         
     filename = f"{uuid.uuid4()}.{file_ext}"
     if not os.path.exists(settings.UPLOAD_DIR):

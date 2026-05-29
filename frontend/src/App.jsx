@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Trash2, Edit2, Download, Power, PowerOff, X, LogOut,
   BarChart2, QrCode, Link as LinkIcon, Menu, LayoutDashboard, Settings as SettingsIcon, PieChart, Search, Calendar, Filter, RotateCcw, Scan,
-  Smartphone, Home, Briefcase, Printer, Phone, MessageCircle, ChevronDown, Upload, FileSpreadsheet, Check
+  Smartphone, Home, Briefcase, Printer, Phone, MessageCircle, ChevronDown, Upload, FileSpreadsheet, Check, FileText, Copy
 } from 'lucide-react';
 import Login from './pages/Login';
 import clsx from 'clsx';
@@ -18,7 +18,7 @@ import ConfirmationModal from './components/ui/ConfirmationModal';
 
 function App() {
   const { user, isAuthenticated, logout, isLoading: isAuthLoading } = useAuth();
-  const { qrs, isLoading: isQrLoading, createQR, updateQR, deleteQR, bulkCreateVCard } = useQR();
+  const { qrs, isLoading: isQrLoading, createQR, updateQR, deleteQR, bulkCreateVCard, uploadImage } = useQR();
 
   const submitting = createQR.isPending || updateQR.isPending;
 
@@ -39,6 +39,7 @@ function App() {
   const [selectedCsvFile, setSelectedCsvFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [bulkSuccessMessage, setBulkSuccessMessage] = useState(null);
+  const [copySuccess, setCopySuccess] = useState(null);
 
   const phoneTypes = [
     { label: 'Mobile Phone', icon: Smartphone },
@@ -138,6 +139,24 @@ function App() {
       } else {
         setError('Please upload a valid CSV file.');
       }
+    }
+  };
+
+  const handlePdfUpload = async (file) => {
+    if (file.type !== 'application/pdf') {
+      setError('Please upload a valid PDF file.');
+      return;
+    }
+    setError(null);
+    try {
+      const response = await uploadImage.mutateAsync(file);
+      if (response && response.url) {
+         const fullUrl = response.url.startsWith('http') ? response.url : `${import.meta.env.VITE_UPLOAD_BASE_URL || 'http://localhost:8001'}${response.url}`;
+         setFormData(prev => ({ ...prev, targetUrl: fullUrl }));
+      }
+    } catch (err) {
+      console.error('Error uploading PDF', err);
+      setError('Failed to upload PDF.');
     }
   };
 
@@ -387,6 +406,19 @@ function App() {
             <span className="font-medium text-sm">vCard</span>
           </div>
 
+          <div
+            onClick={() => { setCurrentView('dashboard'); setFilterType('pdf'); setStatusFilter('all'); setIsMobileMenuOpen(false); }}
+            className={clsx(
+              "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ml-2",
+              currentView === 'dashboard' && filterType === 'pdf'
+                ? "bg-obsidian-eclipse border-l-4 border-liquid-lava text-white shadow-lg"
+                : "text-light-grey hover:text-white hover:bg-obsidian-eclipse"
+            )}
+          >
+            <FileText size={18} />
+            <span className="font-medium text-sm">PDF Document</span>
+          </div>
+
           <div className="pt-8 pb-2 px-4 uppercase text-[10px] font-bold tracking-[0.15em] text-taupe/60">
             System
           </div>
@@ -456,9 +488,10 @@ function App() {
               {currentView === 'dashboard' && (
                 filterType === 'url' ? 'Folder: Website URL' :
                   filterType === 'vcard' ? 'Folder: vCard' :
-                    statusFilter === 'active' ? 'Status: Active QR' :
-                      statusFilter === 'paused' ? 'Status: Paused QR' :
-                        'Managed QR Codes'
+                    filterType === 'pdf' ? 'Folder: PDF Document' :
+                      statusFilter === 'active' ? 'Status: Active QR' :
+                        statusFilter === 'paused' ? 'Status: Paused QR' :
+                          'Managed QR Codes'
               )}
               {currentView === 'analytics' && 'Traffic Analytics'}
               {currentView === 'settings' && ''}
@@ -499,9 +532,10 @@ function App() {
                 <h3 className="text-xl font-header font-bold text-obsidian-blue">
                   {filterType === 'url' ? 'URL Campaigns' :
                     filterType === 'vcard' ? 'vCard Campaigns' :
-                      statusFilter === 'active' ? 'Active Campaigns' :
-                        statusFilter === 'paused' ? 'Paused Campaigns' :
-                          'All Campaigns'}
+                      filterType === 'pdf' ? 'PDF Campaigns' :
+                        statusFilter === 'active' ? 'Active Campaigns' :
+                          statusFilter === 'paused' ? 'Paused Campaigns' :
+                            'All Campaigns'}
                 </h3>
                 <button
                   onClick={() => {
@@ -562,6 +596,10 @@ function App() {
                       onClick={() => setFilterType('vcard')}
                       className={clsx("px-4 py-2 text-xs font-bold rounded-lg transition-all", filterType === 'vcard' ? "bg-liquid-lava text-white shadow-lg shadow-liquid-lava/20" : "text-taupe hover:text-white")}
                     >vCard</button>
+                    <button
+                      onClick={() => setFilterType('pdf')}
+                      className={clsx("px-4 py-2 text-xs font-bold rounded-lg transition-all", filterType === 'pdf' ? "bg-liquid-lava text-white shadow-lg shadow-liquid-lava/20" : "text-taupe hover:text-white")}
+                    >PDF</button>
                   </div>
 
                   {/* Status Filter */}
@@ -695,7 +733,7 @@ function App() {
                       return (
                         <div className="col-span-full p-12 text-center text-taupe bg-gray-50 rounded-xl border border-dashed border-gray-200">
                           <p>
-                            No {filterType === 'url' ? 'Website URL' : filterType === 'vcard' ? 'vCard' : ''}
+                            No {filterType === 'url' ? 'Website URL' : filterType === 'vcard' ? 'vCard' : filterType === 'pdf' ? 'PDF Document' : ''}
                             {statusFilter === 'active' ? ' active' : statusFilter === 'paused' ? ' paused' : ''}
                             QR codes found.
                           </p>
@@ -728,16 +766,30 @@ function App() {
                             <p className="text-[10px] text-taupe font-mono truncate mb-2">{qr.targetUrl}</p>
                           )}
 
-                          <div className="flex items-center gap-2 mb-4">
+                          <div className="flex items-center gap-2 mb-4 group/link">
                             <LayoutDashboard size={14} className="text-liquid-lava" />
-                            <a
-                              href={qr.proxyUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs font-mono text-obsidian-tide hover:text-liquid-lava transition-colors truncate"
+                            <span
+                              onClick={() => {
+                                navigator.clipboard.writeText(qr.proxyUrl);
+                                setCopySuccess(qr.id);
+                                setTimeout(() => setCopySuccess(null), 2000);
+                              }}
+                              className="text-xs font-mono text-obsidian-tide hover:text-liquid-lava transition-colors truncate cursor-pointer flex-1"
+                              title="Click to copy"
                             >
                               {qr.proxyUrl}
-                            </a>
+                            </span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(qr.proxyUrl);
+                                setCopySuccess(qr.id);
+                                setTimeout(() => setCopySuccess(null), 2000);
+                              }}
+                              className="text-taupe hover:text-liquid-lava transition-colors"
+                              title="Copy URL"
+                            >
+                              {copySuccess === qr.id ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                            </button>
                           </div>
 
                           {/* Stats Row */}
@@ -901,6 +953,13 @@ function App() {
                     className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${formData.qrType === 'bulk' ? 'bg-obsidian-blue text-white shadow-md' : 'bg-slate-50 text-obsidian-tide hover:bg-slate-100'}`}
                   >
                     Bulk Import (CSV)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, qrType: 'pdf' })}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${formData.qrType === 'pdf' ? 'bg-obsidian-blue text-white shadow-md' : 'bg-slate-50 text-obsidian-tide hover:bg-slate-100'}`}
+                  >
+                    PDF Document
                   </button>
                 </div>
               )}
@@ -1217,6 +1276,62 @@ function App() {
                     />
                     <p className="text-[10px] text-taupe mt-1">Enter number with country code, no "+" or spaces.</p>
                   </div>
+                ) : formData.qrType === 'pdf' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-obsidian-tide mb-1">Upload PDF</label>
+                    <div 
+                      onDragEnter={handleDrag}
+                      onDragOver={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDrop={(e) => {
+                         e.preventDefault();
+                         e.stopPropagation();
+                         setDragActive(false);
+                         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                           handlePdfUpload(e.dataTransfer.files[0]);
+                         }
+                      }}
+                      onClick={() => document.getElementById('pdf-file-input').click()}
+                      className={clsx(
+                        "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[150px]",
+                        dragActive ? "border-liquid-lava bg-liquid-lava/5" : "border-slate-200 hover:border-liquid-lava hover:bg-slate-50"
+                      )}
+                    >
+                      <input 
+                        type="file" 
+                        id="pdf-file-input" 
+                        accept=".pdf" 
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handlePdfUpload(e.target.files[0]);
+                          }
+                        }}
+                        className="hidden" 
+                      />
+                      <FileText className="w-10 h-10 text-taupe mb-3" />
+                      {formData.targetUrl && formData.qrType === 'pdf' ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-bold text-obsidian-blue">PDF Uploaded Successfully</p>
+                          <p className="text-xs text-emerald-500 break-all">{formData.targetUrl}</p>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormData({ ...formData, targetUrl: '' });
+                            }}
+                            className="text-xs font-bold text-red-500 hover:text-red-600 mt-2 inline-block"
+                          >
+                            Remove File
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-bold text-obsidian-blue">Drag & drop your PDF file here</p>
+                          <p className="text-xs text-taupe mt-1">or click to browse from your computer</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 ) : (
                   <div>
                     <label className="block text-sm font-medium text-obsidian-tide mb-1">Destination URL</label>
@@ -1446,9 +1561,30 @@ function App() {
                   />
                 </div>
 
-                <p className="text-xs text-taupe font-mono mb-6 bg-slate-50 py-2 rounded border border-slate-100 mx-4 truncate">
-                  {selectedQr.proxyUrl}
-                </p>
+                <div className="flex items-center gap-2 mb-6 mx-4">
+                  <span
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedQr.proxyUrl);
+                      setCopySuccess(selectedQr.id);
+                      setTimeout(() => setCopySuccess(null), 2000);
+                    }}
+                    className="text-xs text-taupe font-mono bg-slate-50 py-2 px-3 rounded border border-slate-100 truncate cursor-pointer flex-1"
+                    title="Click to copy"
+                  >
+                    {selectedQr.proxyUrl}
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedQr.proxyUrl);
+                      setCopySuccess(selectedQr.id);
+                      setTimeout(() => setCopySuccess(null), 2000);
+                    }}
+                    className="p-2 bg-slate-50 border border-slate-100 rounded text-taupe hover:text-liquid-lava transition-colors"
+                    title="Copy URL"
+                  >
+                    {copySuccess === selectedQr.id ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
+                  </button>
+                </div>
 
                 <button onClick={() => downloadQR(selectedQr.id)} className="w-full btn btn-primary">
                   <Download size={18} />
